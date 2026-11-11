@@ -13,6 +13,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -28,6 +34,7 @@ public class SecurityConfig {
             throws Exception {
 
         http
+                .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
@@ -41,26 +48,20 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public endpoints
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/actuator",
                                 "/actuator/**"
                         ).permitAll()
 
-                        // Public route viewing
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/api/v1/routes/**"
-                        ).permitAll()
-
-                        // Public trip viewing
-                        .requestMatchers(
-                                HttpMethod.GET,
+                                "/api/v1/routes/**",
                                 "/api/v1/trips/**"
                         ).permitAll()
 
-                        // Trip management
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/v1/trips/**"
@@ -81,29 +82,11 @@ public class SecurityConfig {
                                 "/api/v1/trips/**"
                         ).hasAnyRole("OPERATOR", "ADMIN")
 
-                        // Route management
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/v1/routes/**"
-                        ).hasAnyRole("OPERATOR", "ADMIN")
-
-                        .requestMatchers(
-                                HttpMethod.PUT,
-                                "/api/v1/routes/**"
-                        ).hasAnyRole("OPERATOR", "ADMIN")
-
-                        .requestMatchers(
-                                HttpMethod.DELETE,
-                                "/api/v1/routes/**"
-                        ).hasAnyRole("OPERATOR", "ADMIN")
-
-                        // Bus viewing
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/v1/buses/**"
                         ).authenticated()
 
-                        // Bus management
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/v1/buses/**"
@@ -119,23 +102,18 @@ public class SecurityConfig {
                                 "/api/v1/buses/**"
                         ).hasAnyRole("OPERATOR", "ADMIN")
 
-                        // Admin dashboard and management
                         .requestMatchers("/api/v1/admin/**")
                         .hasRole("ADMIN")
 
-                        // Operator dashboard
                         .requestMatchers("/api/v1/operator/dashboard")
                         .hasAnyRole("OPERATOR", "ADMIN")
 
-                        // Other operator management endpoints: ADMIN only
                         .requestMatchers("/api/v1/operator/**")
                         .hasRole("ADMIN")
 
-                        // Customer endpoints
                         .requestMatchers("/api/v1/customer/**")
                         .hasAnyRole("CUSTOMER", "ADMIN")
 
-                        // Booking endpoints use controller-level role checks
                         .anyRequest().authenticated()
                 )
 
@@ -145,6 +123,31 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:5173",
+                "https://*.onrender.com"
+        ));
+
+        configuration.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
+        ));
+
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(false);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 
     @Bean
