@@ -50,18 +50,34 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+                        // Public authentication endpoints
                         .requestMatchers(
-                                "/api/v1/auth/**",
+                                "/api/v1/auth/**"
+                        ).permitAll()
+
+                        // Actuator health endpoints
+                        .requestMatchers(
                                 "/actuator",
                                 "/actuator/**"
                         ).permitAll()
 
+                        // Swagger documentation
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/webjars/**"
+                        ).permitAll()
+
+                        // Public route and trip search
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/v1/routes/**",
                                 "/api/v1/trips/**"
                         ).permitAll()
 
+                        // Trip management
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/v1/trips/**"
@@ -82,6 +98,7 @@ public class SecurityConfig {
                                 "/api/v1/trips/**"
                         ).hasAnyRole("OPERATOR", "ADMIN")
 
+                        // Bus management
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/v1/buses/**"
@@ -102,18 +119,22 @@ public class SecurityConfig {
                                 "/api/v1/buses/**"
                         ).hasAnyRole("OPERATOR", "ADMIN")
 
+                        // Admin endpoints
                         .requestMatchers("/api/v1/admin/**")
                         .hasRole("ADMIN")
 
+                        // Operator endpoints
                         .requestMatchers("/api/v1/operator/dashboard")
                         .hasAnyRole("OPERATOR", "ADMIN")
 
                         .requestMatchers("/api/v1/operator/**")
                         .hasRole("ADMIN")
 
+                        // Customer endpoints
                         .requestMatchers("/api/v1/customer/**")
                         .hasAnyRole("CUSTOMER", "ADMIN")
 
+                        // All remaining endpoints require authentication
                         .anyRequest().authenticated()
                 )
 
