@@ -100,6 +100,9 @@ public class OperatorController {
 
         Map<String, Object> dashboard = new LinkedHashMap<>();
 
+        // Important: send the real operator ID to the frontend.
+        dashboard.put("operatorId", operator.getId());
+
         dashboard.put("companyName", operator.getCompanyName());
         dashboard.put("totalBuses", buses.size());
         dashboard.put("activeBuses", activeBuses);
